@@ -156,7 +156,7 @@ function play() {
 			return "U"
 		}).join("")
 	}).join("R")
-	var url = "game.html?level=" + result + "&players=1&bots=0&laps=1"
+	var url = "../game/game.html?level=" + result + "&players=1&bots=0&laps=1"
 	window.open(url)
 }
 function loadLevel(data) {

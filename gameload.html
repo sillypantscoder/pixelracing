@@ -11,7 +11,7 @@ a {
 		</style>
 	</head>
 	<body>
-		<a href="/">Back Home</a>
+		<a href=".">Back Home</a>
 		<h3>Race Setup</h3>
 		<div>Select File: <input type="file" oninput="this.files[0].text().then((v) => t.push(v))"></div>
 		<div>Total number of racers: <input type="number" min="2" max="100" value="2" id="total_pixels"></div>
@@ -37,7 +37,7 @@ function submit() {
 	var laps = $("#n_laps").valueAsNumber
 	var wind = $("#wind").value
 	var botspeed = $("#botspeed").value
-	window.open(`/game.html?level=${e}&players=${n_humans}&bots=${n_bots}&laps=${laps}&wind=${wind}&botmaxspeed=${botspeed}`)
+	window.open(`game/game.html?level=${e}&players=${n_humans}&bots=${n_bots}&laps=${laps}&wind=${wind}&botmaxspeed=${botspeed}`)
 }
 		</script>
 	</body>
