@@ -1,6 +1,8 @@
-// @ts-nocheck
 function createLevel() {
 	for (var rown = 0; rown < 100; rown++) {
+		/**
+		 * @type {string[]}
+		 */
 		var row_a = []
 		level.push(row_a)
 		for (var coln = 0; coln < 100; coln++) {
@@ -8,18 +10,30 @@ function createLevel() {
 		}
 	}
 }
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {HTMLDivElement} cell
+ */
 function extraCellFunctions(x, y, cell) {
 	cell.addEventListener("click", (e) => {
 		level[y][x] = selectedBlock
+		// @ts-ignore
 		e.target._SetBlockUpdate()
 	})
+	// @ts-ignore
 	cell._BeginFloodFill = () => {
-		target._FloodFill(target.dataset.block, [0], 0)
+		// @ts-ignore
+		cell._FloodFill(cell.dataset.block, [0], 0)
 	}
+	// @ts-ignore
 	cell._FloodFill = (block_from, total, level) => {
-		if (! target.classList.contains("cell-block-" + block_from)) return
+		/** @type {HTMLDivElement} */
+		// @ts-ignore
+		var board = document.querySelector("#viewport")
+		if (! cell.classList.contains("cell-block-" + block_from)) return
 		if (level > 50) return
-		target.click()
+		cell.click()
 		total[0] += 1
 		if (total[0] > 1000) return
 		for (var mx of [-1, 0, 1]) {
@@ -27,15 +41,25 @@ function extraCellFunctions(x, y, cell) {
 				if (mx == 0 && my == 0) continue;
 				if (Math.abs(mx) + Math.abs(my) == 2) continue;
 				if (board.children[my + y] && board.children[my + y].children[mx + x]) {
+					// @ts-ignore
 					board.children[my + y].children[mx + x]._FloodFill(block_from, total, level + 1)
 				}
 			}
 		}
 	}
 }
+/**
+ * @param {HTMLDivElement} elm
+ */
 function getViewportFunctions(elm) {
 	var moves = 0
 	var prev_pos = [0, 0]
+	/**
+	 * @param {HTMLElement} e
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {boolean} touch
+	 */
 	function mousedown(e, x, y, touch) {
 		if (getDragPlace()) {
 			e.click()
@@ -44,6 +68,12 @@ function getViewportFunctions(elm) {
 		moves = 0
 		prev_pos = [x, y]
 	}
+	/**
+	 * @param {HTMLElement} e
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {boolean} touch
+	 */
 	function mousemove(e, x, y, touch) {
 		if (getDragPlace()) {
 			e.click()
@@ -60,6 +90,9 @@ function getViewportFunctions(elm) {
 		viewport_pos[1] += rel_pos[1]
 		elm.setAttribute("style", `top: ${viewport_pos[1]}px; left: ${viewport_pos[0]}px;`)
 	}
+	/**
+	 * @param {{ _BeginFloodFill: () => void; click: () => void; }} e
+	 */
 	function mouseup(e) {
 		if (moves <= 5) {
 			if (document.querySelector(".select-option.select-selected.select-drag-fill") != null) {
@@ -72,6 +105,9 @@ function getViewportFunctions(elm) {
 	return {mousedown, mousemove, mouseup}
 }
 var selectedBlock = blocks[0].name
+/**
+ * @param {string} n
+ */
 function setSelectedBlock(n) {
 	selectedBlock = n;
 	[...document.querySelectorAll(`[data-blockselect].selected`)].forEach((e) => e.classList.remove("selected"));
@@ -80,10 +116,12 @@ function setSelectedBlock(n) {
 function setupBlockSelectors() {
 	for (var i = 0; i < blocks.length; i++) {
 		var e = document.createElement("button")
+		// @ts-ignore
 		document.querySelector("#block_selectors_template").appendChild(e)
 		e.innerText = blocks[i].name
 		e.dataset.blockselect = blocks[i].name
 		e.addEventListener("click", (v) => {
+			// @ts-ignore
 			setSelectedBlock(v.target.dataset.blockselect)
 		})
 	}
@@ -107,6 +145,9 @@ function getCroppedBoard() {
 		}
 		if (hasAny) {
 			// Save the row
+			/**
+			 * @type {string[]}
+			 */
 			var row = []
 			_board.push(row)
 			for (var x = 0; x < level[0].length; x++) {
@@ -159,6 +200,9 @@ function play() {
 	var url = "../game/game.html?level=" + result + "&players=1&bots=0&laps=1"
 	window.open(url)
 }
+/**
+ * @param {string} data
+ */
 function loadLevel(data) {
 	var result = data.split("R").map((v) => {
 		return v.split("").map((b) => {
@@ -189,6 +233,7 @@ function loadLevel(data) {
 	// Update all the elements
 	var cells = [...document.querySelectorAll("#viewport .cell")]
 	for (var i = 0; i < cells.length; i++) {
+		// @ts-ignore
 		cells[i]._SetBlockUpdate();
 	}
 }

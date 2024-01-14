@@ -1,7 +1,21 @@
-// @ts-nocheck
-Array.prototype.choice = function () { return this[Math.floor(Math.random() * this.length)]; }
-Math.dist = (x1, y1, x2, y2) => Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
+/**
+ * Choose a random item from a list.
+ * @template {*} T
+ * @param {T[]} list The list of items to choose from.
+ * @returns {T} The chosen item.
+ */
+function choice(list) { return list[Math.floor(Math.random() * list.length)]; }
+/**
+ * @param {number} x1
+ * @param {number} y1
+ * @param {number} x2
+ * @param {number} y2
+ * @returns {number}
+ */
+function dist(x1, y1, x2, y2) { return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) }
 
+/** @typedef {{ name: string, color: string, abbr: string, collide: "none" | "bounce" | "death" | "jump" | "explode" | "speed", speed: number }} BlockDef */
+/** @type {BlockDef[]} */
 var blocks = [ // U = unknown; R = newline
 	{"name": "empty",    "color": "#888",  "abbr": "V", "collide": "death",  "speed": 0},
 	{"name": "wall",     "color": "brown", "abbr": "W", "collide": "bounce", "speed": 0},
@@ -17,9 +31,15 @@ var blocks = [ // U = unknown; R = newline
 	{"name": "magnet",   "color": "magenta","abbr":"Z", "collide": "bounce", "speed": 0},
 	{"name": "speed-pad","color": "cyan",  "abbr": "P", "collide": "speed",  "speed": 0}
 ]
+/**
+ * @type {string[][]}
+ */
 var level = []
 var viewport_pos = [0, 0]
 class Level {
+	/**
+	 * @param {HTMLDivElement} elm
+	 */
 	static setupViewport(elm) {
 		var {mousedown, mousemove, mouseup} = getViewportFunctions(elm)
 		elm.addEventListener("touchstart", (e) => {
@@ -33,6 +53,7 @@ class Level {
 		})
 		elm.addEventListener("touchend", (e) => {
 			e.preventDefault()
+			// @ts-ignore
 			mouseup(e.target)
 		})
 		elm.addEventListener("mousedown", (e) => {
@@ -47,10 +68,13 @@ class Level {
 		})
 		elm.addEventListener("mouseup", (e) => {
 			e.preventDefault()
+			// @ts-ignore
 			mouseup(e.target)
 		})
 	}
 	static generateBoard() {
+		/** @type {HTMLDivElement} */
+		// @ts-ignore
 		var parent = document.querySelector("#preview");
 		[...parent.children].forEach((e) => e.remove())
 		var board = document.createElement("div")
@@ -69,6 +93,7 @@ class Level {
 				cell.dataset.block = level[rown][coln];
 				((x, y) => {
 					var target = cell
+					// @ts-ignore
 					cell._SetBlockUpdate = () => {
 						var newBlock = level[y][x]
 						target.classList.remove("cell-block-" + target.dataset.block)

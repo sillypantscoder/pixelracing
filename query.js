@@ -1,5 +1,5 @@
-// @ts-nocheck
-(() => {
+const query = (() => {
+	/** @type {Object.<string, string>} */
 	var query = {}
 	var url = decodeURIComponent(location.href.replaceAll("+", " "))
 	var things = url.split("?").slice(1).join("?").split("#")[0].split("&")
@@ -12,10 +12,14 @@
 	} else {
 		query = {}
 	}
-	window.query = query
-	window.query_get = function (item, def) {
-		if (Object.keys(window.query).includes(item)) {
-			return window.query[item]
-		} else return def
-	}
+	return query
 })();
+/**
+ * @param {string} item
+ * @param {string} default_value
+ */
+function query_get(item, default_value) {
+	if (Object.keys(query).includes(item)) {
+		return query[item]
+	} else return default_value
+}

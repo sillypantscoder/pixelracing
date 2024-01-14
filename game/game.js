@@ -1,4 +1,3 @@
-// @ts-nocheck
 var touchmove = [0, 0]
 function createLevel() {
 	level = query_get("level", "WWWWWWWWWWWRWTTTTTT111WRWTTTTTT111WRWFFWWWWWTTWRWFFWVVVWTTWRWTTWVVVWTTWRWTTWWWWWTTWRWTTTTTT222WRWTTTTTT222WRWWWWWWWWWWW").split("R").map((v) => {
@@ -10,10 +9,24 @@ function createLevel() {
 		})
 	})
 }
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {HTMLDivElement} cell
+ */
 function extraCellFunctions(x, y, cell) {}
+/**
+ * @param {HTMLDivElement} elm
+ */
 function getViewportFunctions(elm) {
 	var start_pos = [0, 0]
 	var prev_pos = [0, 0]
+	/**
+	 * @param {any} e
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {boolean} touch
+	 */
 	function mousedown(e, x, y, touch) {
 		start_pos = [x, y]
 		prev_pos = [x, y]
@@ -25,6 +38,12 @@ function getViewportFunctions(elm) {
 			mousemove(e, x, y, touch)
 		}
 	}
+	/**
+	 * @param {any} e
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {boolean} touch
+	 */
 	function mousemove(e, x, y, touch) {
 		if (Level.getFocusPlayer() != null) {
 			if (touch) {
@@ -34,8 +53,8 @@ function getViewportFunctions(elm) {
 					y - start_pos[1]
 				]
 				touchmove = [
-					touchmove[0] / Math.dist(...touchmove, 0, 0),
-					touchmove[1] / Math.dist(...touchmove, 0, 0)
+					touchmove[0] / dist(touchmove[0], touchmove[1], 0, 0),
+					touchmove[1] / dist(touchmove[0], touchmove[1], 0, 0)
 				]
 			}
 		} else {
@@ -50,13 +69,16 @@ function getViewportFunctions(elm) {
 			viewport_pos[1] -= rel_pos[1]
 		}
 	}
+	/**
+	 * @param {HTMLElement} e
+	 */
 	function mouseup(e) {
 		touchmove = [0, 0]
 	}
 	return {mousedown, mousemove, mouseup}
 }
 
-Level.getBlocksOfType = function (type) {
+Level.getBlocksOfType = function (/** @type {string} */ type) {
 	var pos = []
 	for (var y = 0; y < level.length; y++) {
 		for (var x = 0; x < level[y].length; x++) {
@@ -74,11 +96,18 @@ Level.getFocusPlayer = function () {
 	return player
 }
 class Block {
+	/**
+	 * @param {string} name
+	 * @returns {BlockDef | undefined}
+	 */
 	static getEntry(name) {
 		for (var i = 0; i < blocks.length; i++) {
 			if (blocks[i].name == name) return blocks[i]
 		}
 	}
+	/**
+	 * @param {Pixel} pixel
+	 */
 	static bounce(pixel) {
 		var blockPos = [
 			Math.floor(pixel.pos[0]) + 0.5,
@@ -114,6 +143,9 @@ class Block {
 			}
 		}
 	}
+	/**
+	 * @param {Pixel} pixel
+	 */
 	static explode(pixel) {
 		// Erase the exploded block
 		var erase = [
@@ -121,6 +153,7 @@ class Block {
 			Math.floor(pixel.pos[1])
 		]
 		level[erase[1]][erase[0]] = "track"
+		// @ts-ignore
 		document.querySelector("#viewport").children[erase[1]].children[erase[0]]._SetBlockUpdate()
 		// Kaboom!
 		var blockPos = [
@@ -132,7 +165,7 @@ class Block {
 				(players[i].pos[0] - blockPos[0]),
 				(players[i].pos[1] - blockPos[1])
 			]
-			var d = Math.dist(...a, 0, 0)
+			var d = dist(a[0], a[1], 0, 0)
 			if (d > 5) continue
 			a[0] *= 2 / d
 			a[1] *= 2 / d
@@ -142,6 +175,10 @@ class Block {
 	}
 }
 class Pixel {
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 */
 	constructor(x, y) {
 		this.prev_pos = [x, y]
 		this.pos = [x, y]
@@ -149,8 +186,12 @@ class Pixel {
 		this.y = [0, 0]
 		this.elm = document.createElement("div")
 		this.elm.classList.add("pixel")
+		// @ts-ignore
 		document.querySelector("#viewport").appendChild(this.elm)
 		this.place = 0
+		/**
+		 * @type {number[]}
+		 */
 		this.checks = []
 		this.dead = false
 		this.totalTime = 0
@@ -205,10 +246,12 @@ class Pixel {
 	}
 	getSpeedReduction() {
 		var b = Block.getEntry(this.getOnBlock())
+		if (b == undefined) return 0.9
 		return 0.9 + b.speed
 	}
 	handleBlock() {
 		var b = Block.getEntry(this.getOnBlock())
+		if (b == undefined) return
 		if (b.collide == "bounce") {
 			Block.bounce(this)
 		}
@@ -248,13 +291,13 @@ class Pixel {
 	handleMagnets() {
 		var positions = Level.getBlocksOfType("magnet");
 		for (var i = 0; i < positions.length; i++) {
-			if (Math.dist(...this.pos, positions[i][0] + 0.5, positions[i][1] + 0.5) < 5) {
+			if (dist(this.pos[0], this.pos[1], positions[i][0] + 0.5, positions[i][1] + 0.5) < 5) {
 				// Attract
 				var a = [
 					this.pos[0] - (positions[i][0] + 0.5),
 					this.pos[1] - (positions[i][1] + 0.5)
 				]
-				var d = Math.dist(...a, 0, 0)
+				var d = dist(a[0], a[1], 0, 0)
 				var amount = 0.005
 				amount = 0.015
 				a[0] *= -amount / d
@@ -275,8 +318,11 @@ class Pixel {
 		players.splice(players.indexOf(this), 1)
 		this.elm.remove()
 	}
+	/**
+	 * @param {typeof Pixel} type
+	 */
 	static create(type) {
-		var startPos = Level.getBlocksOfType("start").choice();
+		var startPos = choice(Level.getBlocksOfType("start"));
 		var p = new type(startPos[0] + 0.5, startPos[1] + 0.5)
 		players.push(p)
 	}
@@ -295,6 +341,10 @@ class PlayerPixel extends Pixel {
 	}
 }
 class BotPixel extends Pixel {
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 */
 	constructor(x, y) {
 		super(x, y)
 		this.color = "blue"
@@ -303,6 +353,7 @@ class BotPixel extends Pixel {
 		// document.querySelector("#viewport").appendChild(this.elm2)
 	}
 	move() {
+		/** @type {number[][]} */
 		var board = []
 		var endTypes = [
 			"checkpoint-1",
@@ -323,7 +374,7 @@ class BotPixel extends Pixel {
 				board[y].push(val)
 			}
 		}
-		var endpos = Level.getBlocksOfType(endType).choice()
+		var endpos = choice(Level.getBlocksOfType(endType))
 		if (endpos == undefined) return alert(`there are no valid path end blocks of type ${(this.checks.length % totalCheckpointNumber) + 1}`)
 		// pathfind(board, startX, startY, endX, endY)
 		var points = pathfind(board, Math.floor(this.pos[0]), Math.floor(this.pos[1]), endpos[0], endpos[1])
@@ -343,14 +394,19 @@ class BotPixel extends Pixel {
 			target[0] - this.pos[0],
 			target[1] - this.pos[1]
 		]
-		var dist = Math.dist(...target, ...this.pos)
-		difference[0] /= dist * (20 + (Math.random() * botspeed))
-		difference[1] /= dist * (20 + (Math.random() * botspeed))
+		var d = dist(target[0], target[1], this.pos[0], this.pos[1])
+		difference[0] /= d * (20 + (Math.random() * botspeed))
+		difference[1] /= d * (20 + (Math.random() * botspeed))
 		this.v[0] += difference[0]
 		this.v[1] += difference[1]
 	}
 }
 class Particle {
+	/**
+	 * @param {number} x
+	 * @param {number} y
+	 * @param {string} color
+	 */
 	constructor(x, y, color) {
 		this.pos = [x, y]
 		this.size = 0
@@ -361,6 +417,7 @@ class Particle {
 		]
 		this.elm = document.createElement("div")
 		this.elm.classList.add("pixel")
+		// @ts-ignore
 		document.querySelector("#viewport").appendChild(this.elm)
 	}
 	tick() {
@@ -377,16 +434,26 @@ class Particle {
 		particles.splice(particles.indexOf(this), 1)
 		this.elm.remove()
 	}
+	/**
+	 * @param {Pixel} pixel
+	 */
 	static create(pixel) {
-		var p = new Particle(...pixel.pos, pixel.color)
+		var p = new Particle(pixel.pos[0], pixel.pos[1], pixel.color)
 		particles.push(p)
 	}
 }
+/** @type {Pixel[]} */
 var players = []
+/**
+ * @type {Particle[]}
+ */
 var particles = []
+/**
+ * @type {string[]}
+ */
 var keys = []
 var DEBUG = true
-var totalLaps = Number(query_get("laps", 1))
+var totalLaps = Number(query_get("laps", "1"))
 var wind = query_get("wind", "0_0").split("_").map((v) => Number(v))
 var botspeed = Number(query_get("botmaxspeed", "60"))
 var totalCheckpointNumber = 4
@@ -395,8 +462,8 @@ class Main {
 		createLevel()
 		Level.generateBoard()
 		Main.addBlockCSS()
-		for (var i = 0; i < Number(query_get("players", 1)) && i < 1; i++) Pixel.create(PlayerPixel)
-		for (var i = 0; i < Number(query_get("bots", 0)); i++) Pixel.create(BotPixel)
+		for (var i = 0; i < Number(query_get("players", "1")) && i < 1; i++) Pixel.create(PlayerPixel)
+		for (var i = 0; i < Number(query_get("bots", "0")); i++) Pixel.create(BotPixel)
 		Main.startKeyListeners()
 		Main.tickLoop()
 	}
@@ -423,15 +490,18 @@ class Main {
 		}
 	}
 	static tick() {
-		var _p = [...players]
-		for (var i = 0; i < _p.length; i++) {
-			var p = _p[i]
-			p.tick()
+		/** @type {HTMLDivElement} */
+		// @ts-ignore
+		var viewport = document.querySelector("#viewport")
+		var _px = [...players]
+		for (var i = 0; i < _px.length; i++) {
+			var px = _px[i]
+			px.tick()
 		}
-		_p = [...particles]
-		for (var i = 0; i < _p.length; i++) {
-			var p = _p[i]
-			p.tick()
+		var _pt = [...particles]
+		for (var i = 0; i < _pt.length; i++) {
+			var pt = _pt[i]
+			pt.tick()
 		}
 		// Find Player
 		var player = Level.getFocusPlayer()
@@ -441,11 +511,11 @@ class Main {
 			var y = (box.width / 2) - (player.pos[0] / 2)
 			var x = (box.height / 2) - (player.pos[1] / 2)*/
 			// document.querySelector("#log").innerText = player.pos
-			var v = parseFloat(window.getComputedStyle(document.querySelector("#viewport"), null).getPropertyValue('font-size'))
+			var v = parseFloat(window.getComputedStyle(viewport, null).getPropertyValue('font-size'))
 			viewport_pos = [player.pos[0] * v, player.pos[1] * v]
-			// document.querySelector("#viewport").setAttribute("style", `top: calc(50% - ${player.pos[1]}em); left: calc(50% - ${player.pos[0]}em);`)
+			// viewport.setAttribute("style", `top: calc(50% - ${player.pos[1]}em); left: calc(50% - ${player.pos[0]}em);`)
 		}
-		document.querySelector("#viewport").setAttribute("style", `top: calc(50% - ${viewport_pos[1]}px); left: calc(50% - ${viewport_pos[0]}px);`)
+		viewport.setAttribute("style", `top: calc(50% - ${viewport_pos[1]}px); left: calc(50% - ${viewport_pos[0]}px);`)
 		// Update list
 		var list = []
 		for (var i = 0; i < players.length; i++) {
@@ -462,9 +532,11 @@ class Main {
 			// var wintime_weight = players[i].checks[players[i].checks.length - 1]
 			// if (wintime_weight == undefined) wintime_weight = 0
 			// else wintime_weight *= -0.001
+			// @ts-ignore
 			var order = (players[i].checks.length * 5) + (players[i].dead * -0.1)
 			list.push(`<div style="order: ${-order * 100};">${a}</div>`)
 		}
+		// @ts-ignore
 		document.querySelector("#players").innerHTML = list.join("\n")
 	}
 	static startKeyListeners() {

@@ -141,6 +141,7 @@ function _astar_create_module() {
 			options = options || { diagonal: false };
 			this.nodes = [];
 			this.diagonal = !!options.diagonal;
+			/** @type {GridNode[][]} */
 			this.grid = [];
 			for (var x = 0; x < gridIn.length; x++) {
 				this.grid[x] = [];
@@ -151,12 +152,11 @@ function _astar_create_module() {
 					this.nodes.push(node);
 				}
 			}
+			/** @type {GridNode[]} */
+			this.dirtyNodes = []
 			this.init();
 		}
 		init() {
-			/**
-			 * @type {any[]}
-			 */
 			this.dirtyNodes = [];
 			for (var i = 0; i < this.nodes.length; i++) {
 				astar.cleanNode(this.nodes[i]);
@@ -166,9 +166,6 @@ function _astar_create_module() {
 			for (var i = 0; i < this.dirtyNodes.length; i++) {
 				astar.cleanNode(this.dirtyNodes[i]);
 			}
-			/**
-			 * @type {any[]}
-			 */
 			this.dirtyNodes = [];
 		}
 		markDirty(/** @type {any} */ node) {
@@ -255,6 +252,7 @@ function _astar_create_module() {
 			this.h = 0;
 			this.visited = false;
 			this.closed = false;
+			/** @type {GridNode | null} */
 			this.parent = null;
 		}
 		getCost(/** @type {{ x: any; y: any; }} */ fromNeighbor) {
@@ -271,16 +269,15 @@ function _astar_create_module() {
 
 	class BinaryHeap {
 		/**
-		 * @param {(node: any) => any} scoreFunction
+		 * @param {(node: GridNode) => number} scoreFunction
 		 */
 		constructor(scoreFunction) {
-			/**
-			 * @type {any[]}
-			 */
+			/** @type {GridNode[]} */
 			this.content = [];
 			this.scoreFunction = scoreFunction;
 		}
-		push(/** @type {any} */ element) {
+		/** @param {GridNode} element */
+		push(element) {
 			// Add the new element to the end of the array.
 			this.content.push(element);
 
@@ -291,6 +288,8 @@ function _astar_create_module() {
 			// Store the first element so we can return it later.
 			var result = this.content[0];
 			// Get the element at the end of the array.
+			/** @type {GridNode} */
+			// @ts-ignore
 			var end = this.content.pop();
 			// If there are any elements left, put the end element at the
 			// start, and let it bubble up.
@@ -300,11 +299,14 @@ function _astar_create_module() {
 			}
 			return result;
 		}
-		remove(/** @type {any} */ node) {
+		/** @param {GridNode} node */
+		remove(node) {
 			var i = this.content.indexOf(node);
 
 			// When it is found, the process seen in 'pop' is repeated
 			// to fill up the hole.
+			/** @type {GridNode} */
+			// @ts-ignore
 			var end = this.content.pop();
 
 			if (i !== this.content.length - 1) {
@@ -320,7 +322,8 @@ function _astar_create_module() {
 		size() {
 			return this.content.length;
 		}
-		rescoreElement(/** @type {any} */ node) {
+		/** @param {GridNode} node */
+		rescoreElement(node) {
 			this.sinkDown(this.content.indexOf(node));
 		}
 		sinkDown(/** @type {number} */ n) {
@@ -359,7 +362,7 @@ function _astar_create_module() {
 				var child1N = child2N - 1;
 				// This is used to store the new position of the element, if any.
 				var swap = null;
-				var child1Score;
+				var child1Score = -Infinity;
 				// If the first child exists (is inside the array)...
 				if (child1N < length) {
 					// Look it up and compute its score.
@@ -432,8 +435,13 @@ function _pathfind_test() {
 		[1, 0, 1, 0],
 		[1, 1, 1, 0]
 	]
-	var points = pathfind(board, 0, 0, 3, 0)
+	var _points = pathfind(board, 0, 0, 3, 0)
+	/**
+	 * @type {number[][]}
+	 */
+	var points = []
 	console.log(points)
+	if (_points != null) points.push(..._points)
 
 	for (var i = 0; i < points.length; i++) {
 		for (var x = 0; x < board.length; x++) {
