@@ -1,3 +1,4 @@
+// @ts-nocheck
 (() => {
 	var query = {}
 	var url = decodeURIComponent(location.href.replaceAll("+", " "))
