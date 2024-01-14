@@ -1,38 +1,11 @@
 <!DOCTYPE html>
 <html>
 	<head>
+		<link rel="stylesheet" type="text/css" href="main.css">
 		<style>
-html, body {
-	height: 100%;
-	overflow: hidden;
-}
-body {
-	margin: 0;
-	font-family: sans-serif;
-}
 #preview {
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 100vw;
 	height: 75%;
-	overflow: hidden;
 	font-size: 2.5em;
-	/* font-size: 5em; */
-}
-#preview > div {
-	position: absolute;
-	display: flex;
-	flex-direction: column;
-}
-#preview > div > div {
-	display: flex;
-	flex-direction: row;
-}
-#preview div.cell {
-	display: inline-block;
-	width: 1em;
-	height: 1em;
 }
 #preview .pixel {
 	--x: 0;
@@ -54,16 +27,6 @@ body {
 	position: absolute;
 }
 #menu {
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	width: calc(100vw - 2em);
-	height: fit-content;
-	flex-grow: 0;
-	border-top: 1em solid black;
-	background: white;
-	padding: 1em;
-	/*  */
 	height: 25vh;
 	overflow: auto;
 }
