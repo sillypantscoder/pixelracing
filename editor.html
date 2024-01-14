@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+html, body {
+	height: 100%;
+	overflow: hidden;
+}
+body {
+	margin: 0;
+	font-family: sans-serif;
+}
+#preview {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100%;
+	overflow: hidden;
+}
+#preview > div {
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+}
+#preview > div > div {
+	display: flex;
+	flex-direction: row;
+}
+#preview div.cell {
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	border: 1px solid black;
+}
+#menu {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width: calc(100vw - 2em);
+	height: fit-content;
+	flex-grow: 0;
+	border-top: 1em solid black;
+	background: white;
+	padding: 1em;
+}
+[data-blockselect] {
+	color: black;
+	margin: 1em;
+	border: 1px solid black;
+	padding: 1em;
+	background: white;
+	transition: color 0.3s linear, background 0.3s linear;
+}
+[data-blockselect].selected {
+	background: black;
+	color: white;
+}
+
+.select {
+	display: inline-block;
+}
+.select-option {
+	display: inline-block;
+	padding: 1em;
+	font-size: 0.7em;
+	transition: color 0.3s linear, background 0.3s linear;
+	background: white;
+	color: black;
+}
+/* .select-option:not(:first-child) {
+	border-left: 1px solid black;
+} */
+.select-option.select-selected {
+	background: black;
+	color: white;
+}
+		</style>
+	</head>
+	<body>
+		<div id="preview"></div>
+		<div id="menu">
+			<div id="block_selectors_template"></div>
+			<div>Drag:
+				<div class="select"><!--
+					--><div class="select-option select-selected select-drag-move" onclick="[...this.parentNode.children].forEach((e) => e.classList.remove('select-selected'));this.classList.add('select-selected');">Move</div><!--
+					--><div class="select-option" onclick="[...this.parentNode.children].forEach((e) => e.classList.remove('select-selected'));this.classList.add('select-selected');">Place</div><!--
+					--><div class="select-option select-drag-move select-drag-fill" onclick="[...this.parentNode.children].forEach((e) => e.classList.remove('select-selected'));this.classList.add('select-selected');">Move + fill</div><!--
+				--></div><!--
+			--></div>
+			<div><button onclick="download()">Download level</button></div>
+			<div><input type="file"><button onclick="this.previousElementSibling.files[0].text().then(loadLevel);">Upload level</button></div>
+			<div><button onclick="play()">Play level</button></div>
+		</div>
+		<script>window.addEventListener("error", (e) => alert(`${e.message} :${e.lineno}`))</script>
+		<script>
+var viewport_pos = [0, 0]
+var level = []
+var blocks = [ // U = unknown; R = newline
+	{"name": "empty",    "color": "#888",  "abbr": "V"},
+	{"name": "wall",     "color": "brown", "abbr": "W"},
+	{"name": "track",    "color": "white", "abbr": "T"},
+	{"name": "start",    "color": "green", "abbr": "F"},
+	{"name": "checkpoint-1","color":"#AFA","abbr": "1"},
+	{"name": "checkpoint-2","color":"#DFA","abbr": "2"},
+	{"name": "checkpoint-3","color":"#AFD","abbr": "3"},
+	{"name": "rough",    "color": "#007",  "abbr": "G"},
+	{"name": "jump-pad", "color": "yellow","abbr": "J"},
+	{"name": "slip-zone","color": "teal",  "abbr": "S"},
+	{"name": "bomb",     "color": "red",   "abbr": "B"},
+	{"name": "magnet",   "color": "magenta","abbr":"Z"},
+	{"name": "speed-pad","color": "cyan",  "abbr": "P"}
+]
+var selectedBlock = blocks[0].name
+function setSelectedBlock(n) {
+	selectedBlock = n;
+	[...document.querySelectorAll(`[data-blockselect].selected`)].forEach((e) => e.classList.remove("selected"));
+	[...document.querySelectorAll(`[data-blockselect="${n}"]`)].forEach((e) => e.classList.add("selected"));
+}
+function setupBlockSelectors() {
+	for (var i = 0; i < blocks.length; i++) {
+		var e = document.createElement("button")
+		document.querySelector("#block_selectors_template").appendChild(e)
+		e.innerText = blocks[i].name
+		e.dataset.blockselect = blocks[i].name
+		e.addEventListener("click", (v) => {
+			setSelectedBlock(v.target.dataset.blockselect)
+		})
+	}
+}
+function addBlockCSS() {
+	var e = document.createElement("style")
+	document.head.appendChild(e)
+	for (var i = 0; i < blocks.length; i++) {
+		e.innerText += `.cell.cell-block-${blocks[i].name}{background:${blocks[i].color};}\n`;
+	}
+}
+function getDragPlace() {
+	return document.querySelector(".select-option.select-selected.select-drag-move") == null
+}
+function setupViewport(elm) {
+	var moves = 0
+	var prev_pos = [0, 0]
+	function mousedown(e, x, y) {
+		if (getDragPlace()) {
+			e.click()
+			return
+		}
+		moves = 0
+		prev_pos = [x, y]
+	}
+	function mousemove(e, x, y) {
+		if (getDragPlace()) {
+			e.click()
+			return
+		}
+		var rel_pos = [
+			x - prev_pos[0],
+			y - prev_pos[1]
+		]
+		moves += Math.abs(rel_pos[0])
+		moves += Math.abs(rel_pos[1])
+		prev_pos = [x, y]
+		viewport_pos[0] += rel_pos[0]
+		viewport_pos[1] += rel_pos[1]
+		elm.setAttribute("style", `top: ${viewport_pos[1]}px; left: ${viewport_pos[0]}px;`)
+	}
+	function mouseup(e) {
+		if (moves <= 5) {
+			if (document.querySelector(".select-option.select-selected.select-drag-fill") != null) {
+				e._BeginFloodFill()
+			} else {
+				e.click()
+			}
+		}
+	}
+	elm.addEventListener("touchstart", (e) => {
+		e.preventDefault()
+		mousedown(e.target, e.touches[0].clientX, e.touches[0].clientY)
+	})
+	elm.addEventListener("touchmove", (e) => {
+		e.preventDefault()
+		var target = document.elementFromPoint(e.touches[0].clientX, e.touches[0].clientY);
+		mousemove(target, e.touches[0].clientX, e.touches[0].clientY)
+	})
+	elm.addEventListener("touchend", (e) => {
+		e.preventDefault()
+		mouseup(e.target)
+	})
+	elm.addEventListener("mousedown", (e) => {
+		e.preventDefault()
+		mousedown(e.target, e.clientX, e.clientY)
+	})
+	elm.addEventListener("mousemove", (e) => {
+		e.preventDefault()
+		if (e.buttons == 1) {
+			mousemove(e.target, e.clientX, e.clientY)
+		}
+	})
+	elm.addEventListener("mouseup", (e) => {
+		e.preventDefault()
+		mouseup(e.target)
+	})
+}
+function generateBoard() {
+	var parent = document.querySelector("#preview");
+	[...parent.children].forEach((e) => e.remove())
+	var board = document.createElement("div")
+	board.id = "viewport"
+	setupViewport(board)
+	parent.appendChild(board)
+	var scroll_blocker = parent.appendChild(document.createElement("div"))
+	scroll_blocker.setAttribute("style", `position: absolute; left: 1000vw; width: 1em; height: 1em;`)
+	for (var rown = 0; rown < 100; rown++) {
+		var row = document.createElement("div")
+		board.appendChild(row)
+		var row_a = []
+		level.push(row_a)
+		for (var coln = 0; coln < 100; coln++) {
+			var cell = document.createElement("div")
+			cell.classList.add("cell")
+			cell.classList.add("cell-block-" + selectedBlock)
+			cell.dataset.block = selectedBlock;
+			((x, y) => {
+				var target = cell
+				cell._SetBlockUpdate = () => {
+					var newBlock = level[y][x]
+					target.classList.remove("cell-block-" + target.dataset.block)
+					target.dataset.block = newBlock
+					target.classList.add("cell-block-" + newBlock)
+				}
+				cell.addEventListener("click", (e) => {
+					level[y][x] = selectedBlock
+					e.target._SetBlockUpdate()
+				})
+				cell._BeginFloodFill = () => {
+					target._FloodFill(target.dataset.block, [0], 0)
+				}
+				cell._FloodFill = (block_from, total, level) => {
+					if (! target.classList.contains("cell-block-" + block_from)) return
+					if (level > 50) return
+					target.click()
+					total[0] += 1
+					if (total[0] > 1000) return
+					for (var mx of [-1, 0, 1]) {
+						for (var my of [-1, 0, 1]) {
+							if (mx == 0 && my == 0) continue;
+							if (Math.abs(mx) + Math.abs(my) == 2) continue;
+							if (board.children[my + y] && board.children[my + y].children[mx + x]) {
+								board.children[my + y].children[mx + x]._FloodFill(block_from, total, level + 1)
+							}
+						}
+					}
+				}
+			})(coln, rown);
+			row.appendChild(cell)
+			row_a.push(selectedBlock)
+		}
+	}
+}
+function getCroppedBoard() {
+	var _board = []
+	for (var y = 0; y < level.length; y++) {
+		var hasAny = false
+		for (var x = 0; x < level[0].length; x++) {
+			if (level[y][x] != blocks[0].name) hasAny = true
+		}
+		if (hasAny) {
+			// Save the row
+			var row = []
+			_board.push(row)
+			for (var x = 0; x < level[0].length; x++) {
+				row.push(level[y][x])
+			}
+		}
+	}
+	// Crop uninteresting X coordinates
+	for (var x = 0; x < _board[0].length; x++) {
+		var hasAny = false
+		for (var y = 0; y < _board.length; y++) {
+			if (_board[y][x] != blocks[0].name) hasAny = true
+		}
+		if (!hasAny) {
+			// Remove this X position
+			for (var y = 0; y < _board.length; y++) {
+				_board[y].splice(x, 1)
+			}
+			x -= 1;
+		}
+	}
+	return _board
+}
+function download() {
+	var board = getCroppedBoard()
+	var result = board.map((v) => {
+		return v.map((b) => {
+			for (var i = 0; i < blocks.length; i++) {
+				if (blocks[i].name == b) return blocks[i].abbr
+			}
+			return "U"
+		}).join("")
+	}).join("R")
+	var url = "data:text/plain," + result
+	var a = document.createElement("a")
+	a.setAttribute("href", url)
+	a.setAttribute("download", "pixel_racer_level.txt")
+	a.click()
+}
+function play() {
+	var board = getCroppedBoard()
+	var result = board.map((v) => {
+		return v.map((b) => {
+			for (var i = 0; i < blocks.length; i++) {
+				if (blocks[i].name == b) return blocks[i].abbr
+			}
+			return "U"
+		}).join("")
+	}).join("R")
+	var url = "game.html?level=" + result + "&players=1&bots=0&laps=1"
+	window.open(url)
+}
+function loadLevel(data) {
+	var result = data.split("R").map((v) => {
+		return v.split("").map((b) => {
+			for (var i = 0; i < blocks.length; i++) {
+				if (blocks[i].abbr == b) return blocks[i].name
+			}
+			return blocks[0].name
+		})
+	})
+	// Erase previous level
+	for (var y = 0; y < level.length; y++) {
+		for (var x = 0; x < level[y].length; x++) {
+			level[y][x] = blocks[0].name
+		}
+	}
+	// Draw the new level
+	var drawPos = [
+		(level[0].length / 2) - (result[0].length / 2),
+		(   level.length / 2) - (result.length / 2)
+	]
+	drawPos[0] = Math.round(drawPos[0])
+	drawPos[1] = Math.round(drawPos[1])
+	for (var y = 0; y < result.length; y++) {
+		for (var x = 0; x < result[y].length; x++) {
+			level[y + drawPos[1]][x + drawPos[0]] = result[y][x]
+		}
+	}
+	// Update all the elements
+	var cells = [...document.querySelectorAll("#viewport .cell")]
+	for (var i = 0; i < cells.length; i++) {
+		cells[i]._SetBlockUpdate();
+	}
+}
+function setup() {
+	setupBlockSelectors()
+	setSelectedBlock(selectedBlock)
+	generateBoard()
+	addBlockCSS()
+}
+setup()
+		</script>
+	</body>
+</html>

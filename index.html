@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>pixelrace</title>
+		<!-- <link href="style.css" rel="stylesheet" type="text/css" /> -->
+		<style>
+a {
+	color: rgb(0, 0, 200);
+}
+		</style>
+	</head>
+	<body>
+		<div><a href="editor.html">Level Editor</a></div>
+		<div><a href="gameload.html">Game...</a></div>
+		<p>Levels:</p>
+		<ul>
+			<li>Official levels are broken currently, come back later! In the meantime, try some of your own levels! :)</li>
+		</ul>
+		<script>
+/*(() => {
+	var x = new XMLHttpRequest();
+	x.open("GET", "levels.json");
+	x.addEventListener("loadend", (e) => {
+		var m = JSON.parse(e.target.responseText);
+		for (var i = 0; i < m.length; i++) {
+			var l = document.createElement("li");
+			l.innerHTML = `<a href="${m[i]["url"]}">${m[i]["name"]}</a>`;
+			document.querySelector("ul").appendChild(l);
+		}
+	});
+	x.send();
+})();*/
+		</script>
+	</body>
+</html>

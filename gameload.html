@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<style>
+body {
+	font-family: sans-serif;
+}
+a {
+	color: rgb(0, 0, 200) !important;
+}
+		</style>
+	</head>
+	<body>
+		<a href="/">Back Home</a>
+		<h3>Race Setup</h3>
+		<div>Select File: <input type="file" oninput="this.files[0].text().then((v) => t.push(v))"></div>
+		<div>Total number of racers: <input type="number" min="2" max="100" value="2" id="total_pixels"></div>
+		<div><input type="checkbox" id="include_real_player"> Include real player</div>
+		<div>Number of laps: <input type="number" min="1" max="5" value="1" id="n_laps"></div>
+		<div>Wind: <select id="wind">
+			<option value="0_0" selected>No wind (default)</option>
+			<option value="0.005_0">Wind to the right</option>
+		</select></div>
+		<div>Bot Speed: <select id="botspeed">
+			<option value="60" selected>Normal</option>
+			<option value="120">Faster</option>
+		</select></div>
+		<div><button onclick="submit()">Play!</button></div>
+		<script>window.addEventListener("error", (e) => alert(`${e.message} :${e.lineno}`))</script>
+		<script>
+var $ = (v) => document.querySelector(v)
+var t = []
+function submit() {
+	var e = t[t.length - 1]
+	var n_humans = $("#include_real_player").checked * 1
+	var n_bots = $("#total_pixels").valueAsNumber - n_humans
+	var laps = $("#n_laps").valueAsNumber
+	var wind = $("#wind").value
+	var botspeed = $("#botspeed").value
+	window.open(`/game.html?level=${e}&players=${n_humans}&bots=${n_bots}&laps=${laps}&wind=${wind}&botmaxspeed=${botspeed}`)
+}
+		</script>
+	</body>
+</html>
