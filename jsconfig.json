@@ -16,10 +16,6 @@
 		"**/node_modules/*"
 	],
 	"include": [
-		"editor/editor.js",
-		"game/astar2.js",
-		"game/game.js",
-		"main.js",
-		"query.js"
+		"**/*.js"
 	]
 }

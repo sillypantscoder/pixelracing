@@ -22,7 +22,7 @@ a {
 		var m = JSON.parse(e.target.responseText);
 		for (var i = 0; i < m.length; i++) {
 			var l = document.createElement("li");
-			l.innerHTML = `<a href="${m[i]["url"]}">${m[i]["name"]}</a>`;
+			l.innerHTML = `<a href="game/game.html?level=${m[i]["data"]}">${m[i]["name"]}</a>`;
 			document.querySelector("ul").appendChild(l);
 		}
 	});

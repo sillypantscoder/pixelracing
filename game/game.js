@@ -365,12 +365,12 @@ class BotPixel extends Pixel {
 		for (var y = 0; y < level.length; y++) {
 			board.push([])
 			for (var x = 0; x < level[y].length; x++) {
-				var val = 0
+				var val = 10000000
 				if (level[y][x] == "track") val = 1
 				if (level[y][x] == "track-wind") val = 1
 				if (level[y][x] == "slip-zone") val = 1
 				if (level[y][x] == "rough") val = 10
-				if (endTypes.includes(level[y][x])) val = 10000
+				if (level[y][x] == "speed-pad") val = 1
 				board[y].push(val)
 			}
 		}
@@ -486,7 +486,7 @@ class Main {
 				}
 			} else Main.tick()
 			await new Promise((resolve) => requestAnimationFrame(resolve))
-			//await new Promise((resolve) => requestAnimationFrame(resolve))
+			await new Promise((resolve) => requestAnimationFrame(resolve))
 		}
 	}
 	static tick() {

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" type="text/css" href="../main.css">
+		<style>
+#preview {
+	height: 75%;
+	font-size: 2.5em;
+}
+#preview .pixel {
+	--x: 0;
+	--y: 0;
+	--h: 0;
+	--color: red;
+	--size: calc(0.1em + calc(var(--h) * 0.04em));
+	position: absolute;
+	top: calc(calc(var(--y) * 1em) - var(--size));
+	left: calc(calc(var(--x) * 1em) - var(--size));
+	width: calc(var(--size) * 2);
+	height: calc(var(--size) * 2);
+	background: var(--color);
+}
+.pixel.speed {
+	box-shadow: 0px 3px 3px 0px orange;
+}
+#viewport {
+	position: absolute;
+}
+#menu {
+	height: 25vh;
+	overflow: auto;
+}
+button {
+	user-select: none;
+}
+#players {
+	display: flex;
+	flex-direction: column;
+	height: max-content;
+	white-space: pre-wrap;
+}
+
+.cell.cell-block-magnet {
+	position: relative;
+}
+.cell.cell-block-magnet::before {
+	content: "";
+	position: absolute;
+	top: -4.5em;
+	left: -4.5em;
+	width: 10em;
+	height: 10em;
+	border-radius: 50%;
+	background: magenta;
+	opacity: 0.05;
+}
+		</style>
+	</head>
+	<body>
+		<div id="preview"></div>
+		<div id="menu">
+			<!-- <button ontouchstart="keys.push('ArrowUp')" ontouchend="keys.splice(keys.indexOf('ArrowUp'), 1)">Up</button>
+			<button ontouchstart="keys.push('ArrowDown')" ontouchend="keys.splice(keys.indexOf('ArrowDown'), 1)">Down</button>
+			<button ontouchstart="keys.push('ArrowLeft')" ontouchend="keys.splice(keys.indexOf('ArrowLeft'), 1)">Left</button>
+			<button ontouchstart="keys.push('ArrowRight')" ontouchend="keys.splice(keys.indexOf('ArrowRight'), 1)">Right</button> -->
+			<div id="log"></div>
+			<div id="players"></div>
+		</div>
+		<script>window.addEventListener("error", (e) => alert(`${e.message} :${e.lineno}`))</script>
+		<script src="../query.js"></script>
+		<script src="../main.js"></script>
+		<script src="../game/game.js"></script>
+		<script src="online.js"></script>
+		<script>MainOnline.main()</script>
+	</body>
+</html>

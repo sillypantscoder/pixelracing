@@ -55,7 +55,7 @@
 				--></div><!--
 			--></div>
 			<div><button onclick="download()">Download level</button></div>
-			<div><input type="file"><button onclick="this.previousElementSibling.files[0].text().then(loadLevel);">Upload level</button></div>
+			<div><input type="file"><button onclick="if(this.previousElementSibling.files[0]){this.previousElementSibling.files[0].text().then(loadLevel);}else{loadLevel(prompt())}">Upload level</button></div>
 			<div><button onclick="play()">Play level</button></div>
 		</div>
 		<script>window.addEventListener("error", (e) => alert(`${e.message} :${e.lineno}`))</script>
