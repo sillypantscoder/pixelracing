@@ -5,7 +5,7 @@ from websockets.typing import Origin
 import typing
 import time
 
-hostName = "0.0.0.0"
+hostName = "localhost"
 serverPort = 8774
 
 connections: "list[Connection]" = []

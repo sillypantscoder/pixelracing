@@ -289,22 +289,27 @@ class Pixel {
 		}
 	}
 	handleMagnets() {
+		const magnet_strength = 0.015
 		var positions = Level.getBlocksOfType("magnet");
+		var closePos = []
 		for (var i = 0; i < positions.length; i++) {
 			if (dist(this.pos[0], this.pos[1], positions[i][0] + 0.5, positions[i][1] + 0.5) < 5) {
-				// Attract
-				var a = [
-					this.pos[0] - (positions[i][0] + 0.5),
-					this.pos[1] - (positions[i][1] + 0.5)
-				]
-				var d = dist(a[0], a[1], 0, 0)
-				var amount = 0.005
-				amount = 0.015
-				a[0] *= -amount / d
-				a[1] *= -amount / d
-				this.v[0] += a[0]
-				this.v[1] += a[1]
+				closePos.push(positions[i])
 			}
+		}
+		for (var i = 0; i < closePos.length; i++) {
+			// Attract
+			var accel = [
+				this.pos[0] - (closePos[i][0] + 0.5),
+				this.pos[1] - (closePos[i][1] + 0.5)
+			]
+			var d = dist(accel[0], accel[1], 0, 0)
+			var amount = -magnet_strength / d
+			amount /= closePos.length
+			accel[0] *= amount
+			accel[1] *= amount
+			this.v[0] += accel[0]
+			this.v[1] += accel[1]
 		}
 	}
 	move() {}
